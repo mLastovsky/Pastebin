@@ -17,7 +17,6 @@
 	<properties>
 		<java.version>21</java.version>
 		<spring-cloud.version>2024.0.1</spring-cloud.version>
-		<docker.image.prefix>mlastovsky</docker.image.prefix>
 	</properties>
 
 	<dependencies>
@@ -59,9 +58,6 @@
 					<layers>
 						<enabled>true</enabled>
 					</layers>
-					<image>
-						<name>${docker.image.prefix}/${project.artifactId}</name>
-					</image>
 				</configuration>
 			</plugin>
 		</plugins>
