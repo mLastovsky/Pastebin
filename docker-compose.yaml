@@ -4,11 +4,15 @@ services:
     container_name: vault
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_DEV_ROOT_TOKEN_ID}
-      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_DEV_LISTEN_ADDRESS: 127.0.0.1:8200
     ports:
       - "8200:8200"
+    volumes:
+      - vault_data:/vault/file
+    cap_add:
+      - IPC_LOCK
     networks:
-      - pastebin-net
+      - app-net
     restart: unless-stopped
 
   postgres:
@@ -29,12 +33,31 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - pastebin-net
+      - app-net
     restart: unless-stopped
+
+  config-server:
+    image: config-server:latest
+    build: services/config-server
+    restart: "unless-stopped"
+    ports:
+      - "8888:8888"
+    depends_on:
+      - vault
+
+  pastebin-api:
+    image: pastebin-api:latest
+    build: services/pastebin-api
+    environment:
+      SPRING_PROFILES_ACTIVE: "dev"
+      SPRING_CLOUD_CONFIG_URI: http://configserver:8888
+    networks:
+      - app-net
 
 volumes:
   postgres_data:
+  vault_data:
 
 networks:
-  pastebin-net:
+  app-net:
     driver: bridge
