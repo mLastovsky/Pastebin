@@ -35,28 +35,50 @@ services:
     networks:
       - app-net
     restart: unless-stopped
-
-  config-server:
-    image: config-server:latest
-    build: services/config-server
-    restart: "unless-stopped"
-    ports:
-      - "8888:8888"
-    depends_on:
-      - vault
-
-  pastebin-api:
-    image: pastebin-api:latest
-    build: services/pastebin-api
+    
+  redis:
+    image: redis:latest
+    container_name: redis
     environment:
-      SPRING_PROFILES_ACTIVE: "dev"
-      SPRING_CLOUD_CONFIG_URI: http://configserver:8888
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_USER: ${REDIS_USER}
+      REDIS_USER_PASSWORD: ${REDIS_USER_PASSWORD}
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
+      interval: 30s
+      timeout: 10s
+    volumes:
+      - redis_data:/data
     networks:
       - app-net
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+
+#  config-server:
+#    image: config-server:latest
+#    build: services/config-server
+#    restart: "unless-stopped"
+#    ports:
+#      - "8888:8888"
+#    depends_on:
+#      - vault
+#
+#  pastebin-api:
+#    image: pastebin-api:latest
+#    build: services/pastebin-api
+#    environment:
+#      SPRING_PROFILES_ACTIVE: "dev"
+#      SPRING_CLOUD_CONFIG_URI: http://configserver:8888
+#    networks:
+#      - app-net
 
 volumes:
   postgres_data:
   vault_data:
+  redis_data:
 
 networks:
   app-net:
